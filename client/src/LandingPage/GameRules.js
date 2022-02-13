@@ -10,7 +10,7 @@ const GameRules = ({ rulesClicked, setRulesClicked, trigger }) => {
 		<Popup
 			trigger={trigger}
 			// open={rulesClicked}
-			position="bottom right"
+			position="bottom left"
 			{...{ contentStyle, arrowStyle }}
 			// styles={(ju: "center")}
 			// onClose={() => setRulesClicked(false)}

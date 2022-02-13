@@ -50,15 +50,14 @@ const parseLetterArray = (arr) => {
 
 const LandingPage = () => {
 	const [letters, setLetters] = useState(parseLetterArray(tempLetters));
-    // const [gridState, setGridState] = useState([]);
-    // const [isLoading, setIsLoading] = useState(false);
     const [userGrid, setUserGrid] = useState(tempGrid);
     const [correctSubmission, setCorrectSubmission] = useState(false);
     const [score, setScore] = useState(0);
-    const [badAttempt,setBadAttempt] = useState(false);
+	const [badAttempt,setBadAttempt] = useState(false);
 	
     useEffect(()=>{
-        const state = JSON.parse(window.localStorage.getItem("state"));
+		const state = JSON.parse(window.localStorage.getItem("state"));
+		// const state = window.localStorage.getItem("state");
         // console.log(state);
         // console.log(state.date);
         
@@ -66,14 +65,15 @@ const LandingPage = () => {
         const cur_date_formatted = now.getUTCDate()+"-"+now.getUTCMonth()+"-"+now.getUTCFullYear();
         // console.log(cur_date_formatted);
 
+		//if I have no state or my state is from yesterday
         if(!state || state.date !== cur_date_formatted){
             //api call
-            // console.log("getting state from api");
+            console.log("getting state from api");
             getGameData();
 
         }else{
-            // console.log("retrieved from local state");
             //get from local storage
+            console.log("retrieved from local state");
             const {letters, userGrid, correctSubmission} = state;
 
             setLetters(letters);
@@ -85,47 +85,44 @@ const LandingPage = () => {
     },[]);
     
     
-    const getGameData = async () =>{
-        // setIsLoading(true);
-        try{
-            let address;
+    const getGameData = () =>{
+        
+		let address;
 
-            if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-                // dev code
-                address = "http://localhost:5000";
-            } else {
-                // production code
-                address = process.env.BASE_URL || "https://adamconybear.github.io";
-            }
+		if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+			// dev code
+			address = "http://localhost:5000";
+		} else {
+			// production code
+			address = process.env.BASE_URL || "https://adamconybear.github.io";
+		}
 
-            const result = await axios.get(address + '/get-letters')
-            .then((res) => {
-                // console.log(res.data);
-                setLetters(parseLetterArray(res.data.array));
-                // setGridState(res.data.grid);
-                // setIsLoading(false);
-				const now = new Date();
-                const cur_date_formatted = now.getUTCDate()+"-"+now.getUTCMonth()+"-"+now.getUTCFullYear();
-                const state = {
-                    date: cur_date_formatted,
-                    letters: parseLetterArray(res.data.array),
-                    userGrid: userGrid,
-                    correctSubmission: false
-                }
-                window.localStorage.setItem("state", JSON.stringify(state));
-                
+		axios.get(address + '/get-letters')
+		.then((res) => {
+			// console.log(res.data);
+			setLetters(parseLetterArray(res.data.array));
+			// setGridState(res.data.grid);
 
-                })
-                .catch((error) => {
-                if (error.response) {
-                    console.log(error.response.data);
-                    console.log(error.response.status);
-                    console.log(error.response.headers);
-                }
-                });;
-        }catch(error){
-            console.log(error);
-        }
+			const now = new Date();
+			const cur_date_formatted = now.getUTCDate()+"-"+now.getUTCMonth()+"-"+now.getUTCFullYear();
+			const state = {
+				date: cur_date_formatted,
+				letters: parseLetterArray(res.data.array),
+				userGrid: userGrid,
+				correctSubmission: false
+			}
+			window.localStorage.setItem("state", JSON.stringify(state));
+			
+
+			})
+			.catch((error) => {
+			if (error.response) {
+				console.log(error.response.data);
+				console.log(error.response.status);
+				console.log(error.response.headers);
+			}
+			});;
+        
     } 
 	
 
@@ -135,10 +132,26 @@ const LandingPage = () => {
 	});
 	const getLetterStyle = (isDraggingOver) => ({
 		background: isDraggingOver ? "rgba(0, 0, 0, 0.2)" : "none",
-		display: "flex",
-		overflow: "hidden",
+		// display: "flex",
+		// overflow: "hidden",
 	});
 
+	// const reorderLettersInRow = (letterArray, rowIndex,startCol, endCol) => {
+	// 	//remember to set letter arr..maybe useeffect does this
+	// 	const result = Array.from(letterArray);
+	// 	//get letter
+	// 	const letter = result[rowIndex][startCol];
+	// 	//delete from current spot and replace with #
+	// 	result[rowIndex].splice(startCol,1,"#");
+	// 	//add to destination col (endCol)
+	// 	result[rowIndex].splice(endCol, 0, letter);
+		
+	// 	// result[rowIndex].splice(startCol,1,"#");
+	// 	// setState(newState);
+
+
+	// 	return result;
+	// };
 	const reorderLetters = (letterArray, startIndexes, endIndexes) => {
 		//remember to set letter arr..maybe useeffect does this
 		const result = Array.from(letterArray);
@@ -196,7 +209,8 @@ const LandingPage = () => {
 
 			//remove from grid
 			const [sourceRow, sourceCol] = droppableSource.droppableId.split("");
-            const [destRow, destCol] = droppableDestination.droppableId.split("-");
+			const [destRow, destCol] = droppableDestination.droppableId.split("-");
+
 			//get letter and replace with #
 			const letter = sourceClone[sourceRow][sourceCol];
 			sourceClone[sourceRow][sourceCol] = destClone[destRow][destCol];
@@ -220,6 +234,8 @@ const LandingPage = () => {
 	const onDragEnd = (result) => {
 		const { destination, source } = result;
 		// console.log("drag ended");
+		// console.log(source);
+		// console.log(destination);
 
 		//dropped outside container
 		if (!destination) {
@@ -245,6 +261,7 @@ const LandingPage = () => {
             setUserGrid(data);
             updateLocalStorageGrid(data);
 		} else {
+			//dropping into letters from grid
 			// console.log("Dropped in different container");
 			const result = move(getList(sourceLen), getList(destLen), source, destination);
 
@@ -292,7 +309,8 @@ const LandingPage = () => {
             .then((res) => {
                 // console.log(res.data);
                 setCorrectSubmission(res.data.board_is_valid);
-                setScore(10*res.data.score);
+				setScore(10*res.data.score);
+				
                 if(res.data.board_is_valid){
                     setCorrectSubmission(res.data.board_is_valid);
                 }else{
@@ -300,7 +318,7 @@ const LandingPage = () => {
 
                     setTimeout(()=>{
                         setBadAttempt(false);
-                    },2000)
+                    },820)
                 }
 
 
@@ -382,13 +400,13 @@ const LandingPage = () => {
 										<Droppable
 											key={`${i}-${j}`}
 											droppableId={`${i}-${j}`}
-											isDropDisabled={correctSubmission ? true : false}
+											isDropDisabled={letter !== "#" || correctSubmission ? true : false}
 										>
 											{(provided, snapshot) => (
 												<div
 													className="letter-droppable"
 													ref={provided.innerRef}
-													// {...provided.droppableProps}
+													{...provided.droppableProps}
 													style={getLetterStyle(snapshot.isDraggingOver)}
 												>
 													{letter !== "#" ? (
@@ -420,8 +438,9 @@ const LandingPage = () => {
 					})}
 				</div>
 			</DragDropContext>
-
-			<div className="submit" onClick={handleSubmit}>Submit</div>
+			<div className="submit-container">
+				<div className="submit" onClick={handleSubmit}>Submit</div>
+			</div>
 		</div>
 	);
 };
